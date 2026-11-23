@@ -27,14 +27,16 @@ struct StudentModel: Identifiable {
         guard !scores.isEmpty else { return 0 }
    
         let total = scores.reduce(0, +)
-        return total / Double(scores.count - 1)
+        // FIX: divide by the number of scores, not count - 1
+        return total / Double(scores.count)
     }
 
     var letterGrade: String {
         let avg = average
         if avg >= 90 { return "A" }
 
-        if avg > 90  { return "B" }
+        // FIX: B is from 80 to 89
+        if avg >= 80 { return "B" }
         if avg >= 70 { return "C" }
         if avg >= 60 { return "D" }
         return "F"
@@ -42,6 +44,7 @@ struct StudentModel: Identifiable {
 
     var isPassing: Bool {
 
-        return average >= 60 || scores.count >= 1
+        // FIX: only the average decides if the student passes
+        return average >= 60
     }
 }

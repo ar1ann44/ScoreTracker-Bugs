@@ -17,9 +17,10 @@ class ScoreManager:ObservableObject{
     var onChange: (() -> Void)?
 
     
-    var owner: ScoreManager?
+    // FIX: weak so the object can be released (no retain cycle)
+    weak var owner: ScoreManager?
 
-    private(set) var students: [StudentModel] = []
+    @Published private(set) var students: [StudentModel] = []
 
     func addStudent(_ student: StudentModel) {
         students.append(student)
@@ -28,13 +29,17 @@ class ScoreManager:ObservableObject{
 
     func removeStudent(at index: Int) {
      
-        students.remove(at: index)
-        onChange?()
+        // FIX: check that the index exists before removing
+        if index >= 0 && index < students.count {
+            students.remove(at: index)
+            onChange?()
+        }
     }
 
-    func topStudent() -> StudentModel {
-       
-        return students.max(by: { $0.average < $1.average })!
+    // FIX: return an optional, if the list is empty it returns nil and does not crash
+    func topStudent() -> StudentModel? {
+
+        return students.max(by: { $0.average < $1.average })
     }
 
     func loadSampleData() {
@@ -48,9 +53,6 @@ class ScoreManager:ObservableObject{
         ]
         sample.forEach { addStudent($0) }
 
-        // Set up the retain cycle so the Memory Graph Debugger can catch it
-        let cycle = ScoreManager()
-        cycle.owner = cycle   // self-reference for demo purposes
-        self.owner = cycle
+        // FIX: removed the object that pointed to itself (retain cycle)
     }
 }

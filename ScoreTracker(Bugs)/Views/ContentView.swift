@@ -35,16 +35,27 @@ struct ContentView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Top Student") {
                    
-                        let top = manager.topStudent()
-                        selectedStudent = top
+                        // FIX: if let, so if there are no students the app does not crash
+                        if let top = manager.topStudent() {
+                            selectedStudent = top
+                        }
                     }
                 }
             }
             .onAppear {
-                manager.loadSampleData()
+                // FIX: load the sample data only one time, so the students are not repeated
+                if manager.students.isEmpty {
+                    manager.loadSampleData()
+                }
             }
             .sheet(isPresented: $showingAddStudent) {
                 AddStudentView(manager: manager)
+            }
+            // FIX: now selectedStudent is used, it shows the student that was selected
+            .alert(item: $selectedStudent) { student in
+                Alert(title: Text(student.name),
+                      message: Text("Average: \(String(format: "%.1f", student.average))% - Grade: \(student.letterGrade)"),
+                      dismissButton: .default(Text("OK")))
             }
         }
     }
@@ -70,7 +81,7 @@ struct StudentRowView: View {
                     .fontWeight(.bold)
                 
           
-                    .foregroundColor(student.isPasing ? .green : .red)
+                    .foregroundColor(student.isPassing ? .green : .red)
             }
         }
         .padding(.vertical, 4)
@@ -101,7 +112,7 @@ struct AddStudentView: View {
                         let scores = scoreInput
                             .split(separator: ",")
                             .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
-                        let student = Student(name: name, scores: scores)
+                        let student = StudentModel(name: name, scores: scores)
                         manager.addStudent(student)
                         dismiss()
                     }
